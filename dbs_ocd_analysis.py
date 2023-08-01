@@ -21,61 +21,12 @@ df = pd.read_csv('OCD DBS Tables.csv')
 ### Things to do
 # --> World map chart of origin of publications --> will require extraction from SR team
 
-
-
-#%%
-
-# --> Timeline chart of studies throughout the years ##### FOR SOME REASON THIS DOESN'T WORK LOOK INTO LATER
-
-
-def extract_year(string):
-    pattern = r"\b\d{4}\b"  # Regular expression pattern to match a 4-digit number
-    match = re.search(pattern, string)
-    if match:
-        return match.group()
-    else:
-        return None
-
-# Apply the extract_year function to the 'text' column and store the result in a new 'year' column
-df['year'] = df['Study'].apply(extract_year)
-df['year_end'] = df['year'].astype(int) + 1
-
-
-px.timeline(df,
-            x_start=df['year'].astype(int),
-            x_end=df['year_end'].astype(int),
-            y=df['Study']
-            ).show()
-
-
-
+# used online resource
 
 
 # %%
 
 # --> Study type bar chart
-
-
-bar_study_type = go.Figure()
-
-bar_study_type.add_trace(
-
-    go.Bar(x=['Double-blind randomised crossover trial', 'Cohort', 'Case-series'],
-    y=[10,18,7]
-))
-
-bar_study_type.update_layout(
-
-    title_text='',
-    xaxis_title_text='Study type',
-    yaxis_title_text='Frequency',
-    
-)
-
-bar_study_type.show()
-
-
-#%%
 
 ## using Plotnine
 
@@ -86,7 +37,7 @@ data_study_type = {
 
 df_study_type = pd.DataFrame(data_study_type)
 
-# Create the bar plot using Plotnine
+
 bar_study_type = (
     ggplot(df_study_type, aes(x='Study type', y='Frequency')) +
     geom_bar(stat='identity', position='identity', fill='steelblue') +
@@ -101,29 +52,6 @@ print(bar_study_type)
 # %%
 
 # --> Neuroimaging used
-
-
-bar_neuroimaging = go.Figure()
-
-bar_neuroimaging.add_trace(
-
-    go.Bar(
-    x=['MRI','CT','Tractography','Other'],
-    y=[30,21,6,11]
-))
-
-bar_neuroimaging.update_layout(
-
-    title_text='',
-    xaxis_title_text='Neuroimaging used',
-    yaxis_title_text='Frequency',
-    
-)
-
-bar_neuroimaging.show()
-
-
-#%%
 
 # using plotnine
 
@@ -144,27 +72,18 @@ bar_neuroimaging = (
 
 print(bar_neuroimaging)
 
-
-
-
 #%%
 
 # --> Follow-up time period
 
-# have the follow up as points on a box/biolin plot --> show the points and have the study names as the labels
-
-df.dropna(subset=['mean_follow_up_months'], inplace=True)
-
-px.violin(df, ['mean_follow_up_months'], points='all')
-
-#%%
+# have the follow up as points on a box/biolin plot --> show the points and have the study names as the labels?
 
 ##Using plotnine
 
 # Drop rows with missing values in the 'mean_follow_up_months' column
 df.dropna(subset=['mean_follow_up_months'], inplace=True)
 
-# Create the violin plot using Plotnine
+
 violin_plot = (
     ggplot(df, aes(x='factor(1)', y='mean_follow_up_months')) +
     geom_violin(fill='steelblue', alpha=0.5) +
@@ -177,117 +96,70 @@ violin_plot = (
 print(violin_plot)
 
 
-
-
 # %%
 
 # --> Target of choice
 
-bar_target = go.Figure()
-
-bar_target.add_trace(
-    go.Bar(
-        x=list(df['target_location'].value_counts().index[:11]),
-        y=list(df['target_location'].value_counts()[:11])
-    )
-)
-
-bar_target.update_layout(
-    title_text='',
-    xaxis_title_text='Neuroanatomical target',
-    yaxis_title_text='Frequency'
-)
-
-bar_target.show()
-
-#%%
-
-## Using plotnine -- doesnt work
+## Using plotnine
 
 # Get the top 11 neuroanatomical targets and their frequencies
-top_targets = df['target_location'].value_counts().nlargest(11)
+top_targets = df['target_location'].value_counts().reset_index()
+top_targets
 
-# Create the bar plot using Plotnine
-bar_target = (
-    ggplot(pd.DataFrame(top_targets.reset_index()), aes(x='factor(index)', y='target_location')) +
-    geom_bar(stat='identity', fill='steelblue') +
-    labs(title='', x='Neuroanatomical target', y='Frequency') +
-    theme_minimal() +
-    theme(axis_text_x=element_text(angle=45, hjust=1))
+target_plot = (
+
+    ggplot(top_targets)+
+    aes(x='index', y="target_location")+
+    geom_bar(stat='identity', position='identity', fill='steelblue') +
+    theme_minimal()+
+    coord_flip()
 )
 
-print(bar_target)
-
-
-
+print(target_plot)
 
 
 #%%
 
 # --> Reponse definition
 
-bar_full_response_definition = go.Figure()
-
-bar_full_response_definition.add_trace(
-    go.Bar(
-        x=list(df['full_response_definition'].value_counts().index[:8]),
-        y=list(df['full_response_definition'].value_counts()[:8])
-    )
-)
-
-bar_full_response_definition.update_layout(
-    title_text='',
-    xaxis_title_text='Full response definition',
-    yaxis_title_text='Frequency'
-)
-
-bar_full_response_definition.show()
-
-
-#%%
-
 # Using plotnine -- doesnt work
 
-# Get the top 8 full response definitions and their frequencies
-top_full_responses = df['full_response_definition'].value_counts()
+response_definition = df['full_response_definition'].value_counts().reset_index()
 
-# Create the bar plot using Plotnine
-bar_full_response_definition = (
-    ggplot(top_full_responses, aes(x='factor(index)', y='full_response_definition')) +
-    geom_bar(stat='identity', fill='steelblue') +
-    labs(title='', x='Full response definition', y='Frequency') +
-    theme_minimal() +
-    theme(axis_text_x=element_text(angle=45, hjust=1))
+response_plot = (
+
+    ggplot(response_definition)+
+    aes(x='index', y="full_response_definition")+
+    geom_bar(stat='identity', position='identity', fill='steelblue') +
+    theme_minimal()+
+    coord_flip()
 )
 
-print(bar_full_response_definition)
-
-
-
-
+print(response_plot)
 
 
 #%%
 
-# --> Number of responders vs partial vs non-resp. (Y-BOCS)
+# --> Number of responders vs partial vs non-resp. (Y-BOCS) --> for some reason doesn't work --> had the same bug for previous graphs and cannot remember how I solved it...
+
+df_responders = df[['Study','full_responders','partial_responders']].copy()
+
+df_responders.dropna(inplace=True)
+
+df_responders_melted = df_responders.melt(id_vars='Study',var_name='Response Type')
+
+df_responders_melted_1 = df_responders_melted[df_responders_melted['value']!=0].reset_index()
+
+df_responders_melted_1
 
 
 
+bar_plot = (
+    ggplot(df_responders_melted_1, aes(x='Study', y='value'))+
+    geom_bar(
+        aes(fill='Response Type'),
+        stat='identity', position='fill'))
 
 
 
-
-
-
-
-#%%
-
-
-df['full_response_definition'].value_counts()
-
-# %%
-df['target_location'].value_counts()[0]
-# %%
-df['target_location'].value_counts().index[0]
-
-# %%
+print(bar_plot)
